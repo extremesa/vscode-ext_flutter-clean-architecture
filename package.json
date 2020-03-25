@@ -35,12 +35,23 @@
         "title": "New Feature",
         "category": "Flutter Clean Architecture",
         "icon": "assets/logo.png"
+      },
+      {
+        "command": "extension.new-usecase",
+        "title": "New Usecase",
+        "category": "Flutter Clean Architecture",
+        "icon": "assets/logo.png"
       }
     ],
     "menus": {
       "explorer/context": [
         {
           "command": "extension.new-feature",
+          "group": "cleanArchitectureGroup@1",
+          "when": "explorerResourceIsFolder"
+        },
+        {
+          "command": "extension.new-usecase",
           "group": "cleanArchitectureGroup@1",
           "when": "explorerResourceIsFolder"
         }

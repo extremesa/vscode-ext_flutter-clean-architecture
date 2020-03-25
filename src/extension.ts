@@ -20,9 +20,50 @@ import {
   getBlocTemplate
 } from "./templates";
 import { analyzeDependencies } from "./utils";
+import { getUsecaseTemplate } from "./templates/usecase.template";
 
 export function activate (_context: ExtensionContext) {
   analyzeDependencies();
+
+  commands.registerCommand("extension.new-usecase", async (uri: Uri) => {
+    // Show feature prompt
+    let usecaseName = await promptForName("UseCase");
+    let repositoryName = await promptForName("Repository");
+    let entityName = await promptForName("Entity");
+
+    // Abort if name is not valid
+    if (
+      !isNameValid(usecaseName)
+      || !isNameValid(repositoryName)
+      || !isNameValid(entityName)
+    ) {
+      window.showErrorMessage('The name must not be empty');
+      return;
+    }
+    usecaseName = `${usecaseName}`;
+    repositoryName = `${repositoryName}`;
+    entityName = `${entityName}`;
+
+    let targetDirectory = '';
+    try {
+      targetDirectory = await getTargetDirectory(uri);
+    } catch (error) {
+      window.showErrorMessage(error.message);
+    }
+
+    const pascalCaseUseCaseName = changeCase.pascalCase(usecaseName.toLowerCase());
+    try {
+      await generateUseCase(usecaseName,repositoryName,entityName, targetDirectory);
+      window.showInformationMessage(
+        `Successfully Generated ${pascalCaseUseCaseName} Usecase`
+      );
+    } catch (error) {
+      window.showErrorMessage(
+        `Error:
+        ${error instanceof Error ? error.message : JSON.stringify(error)}`
+      );
+    }
+  });
 
   commands.registerCommand("extension.new-feature", async (uri: Uri) => {
     // Show feature prompt
@@ -110,6 +151,14 @@ export function promptForFeatureName (): Thenable<string | undefined> {
   return window.showInputBox(blocNamePromptOptions);
 }
 
+export function promptForName (type: string): Thenable<string | undefined> {
+  const blocNamePromptOptions: InputBoxOptions = {
+    prompt: `${type} Name`,
+    placeHolder: `Enter your ${type} name, spaces allowed`
+  };
+  return window.showInputBox(blocNamePromptOptions);
+}
+
 export async function promptForUseEquatable (): Promise<boolean> {
   const useEquatablePromptValues: string[] = ["no (default)", "yes (advanced)"];
   const useEquatablePromptOptions: QuickPickOptions = {
@@ -174,6 +223,22 @@ export async function generateFeatureArchitecture (
 
   // Generate the bloc code in the presentation layer
   await generateBlocCode(featureName, presentationDirectoryPath, useEquatable);
+}
+
+export async function generateUseCase (
+  useCaseName: string,
+  repositoryName: string,
+  entityName: string,
+  targetDirectory: string,
+) {
+  const directoryPath = path.join(targetDirectory, '');
+  if (!existsSync(directoryPath)) {
+    await createDirectory(directoryPath);
+  }
+
+  await Promise.all([
+    createUseCaseTemplate(useCaseName,repositoryName,entityName, targetDirectory),
+  ]);
 }
 
 export function getFeaturesDirectoryPath (currentDirectory: string): string {
@@ -273,6 +338,23 @@ export function createBlocTemplate (blocName: string, targetDirectory: string) {
   }
   return new Promise(async (resolve, reject) => {
     writeFile(targetPath, getBlocTemplate(blocName), "utf8", (error: any) => {
+      if (error) {
+        reject(error);
+        return;
+      }
+      resolve();
+    });
+  });
+}
+
+export function createUseCaseTemplate (useCaseName: string,repositoryName: string,entityName: string, targetDirectory: string) {
+  const snakeCaseUseCaseName = changeCase.snakeCase(useCaseName.toLowerCase());
+  const targetPath = path.join(targetDirectory, `${snakeCaseUseCaseName}.dart`)
+  if (existsSync(targetPath)) {
+    throw Error(`${snakeCaseUseCaseName}.dart already exists`);
+  }
+  return new Promise(async (resolve, reject) => {
+    writeFile(targetPath, getUsecaseTemplate(useCaseName,repositoryName,entityName), "utf8", (error: any) => {
       if (error) {
         reject(error);
         return;
