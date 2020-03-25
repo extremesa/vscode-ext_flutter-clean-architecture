@@ -47,6 +47,18 @@
         "title": "New Entity",
         "category": "Flutter Clean Architecture",
         "icon": "assets/logo.png"
+      },
+      {
+        "command": "extension.new-repository",
+        "title": "New Repository",
+        "category": "Flutter Clean Architecture",
+        "icon": "assets/logo.png"
+      },
+      {
+        "command": "extension.new-model",
+        "title": "New Model",
+        "category": "Flutter Clean Architecture",
+        "icon": "assets/logo.png"
       }
     ],
     "menus": {
@@ -58,12 +70,22 @@
         },
         {
           "command": "extension.new-usecase",
-          "group": "cleanArchitectureGroup@1",
+          "group": "cleanArchitectureDomainGroup@1",
           "when": "explorerResourceIsFolder"
         },
         {
           "command": "extension.new-entity",
-          "group": "cleanArchitectureGroup@1",
+          "group": "cleanArchitectureDomainGroup@1",
+          "when": "explorerResourceIsFolder"
+        },
+        {
+          "command": "extension.new-repository",
+          "group": "cleanArchitectureDomainGroup@1",
+          "when": "explorerResourceIsFolder"
+        },
+        {
+          "command": "extension.new-model",
+          "group": "cleanArchitectureDataGroup@2",
           "when": "explorerResourceIsFolder"
         }
       ]
@@ -79,7 +101,7 @@
   "devDependencies": {
     "@types/change-case": "^2.3.1",
     "@types/glob": "^7.1.1",
-    "@types/js-yaml": "^3.12.1",
+    "@types/js-yaml": "^3.12.3",
     "@types/lodash": "^4.14.149",
     "@types/mkdirp": "^0.5.2",
     "@types/mocha": "^5.2.6",
@@ -88,7 +110,7 @@
     "@types/semver": "^6.0.2",
     "@types/vscode": "^1.39.0",
     "cz-conventional-changelog": "^3.0.2",
-    "glob": "^7.1.4",
+    "glob": "^7.1.6",
     "mocha": "^6.1.4",
     "tslint": "^5.12.1",
     "typescript": "^3.3.1",
@@ -96,11 +118,12 @@
   },
   "dependencies": {
     "change-case": "^3.1.0",
+    "cz-conventional-changelog": "^3.0.2",
     "js-yaml": "^3.13.1",
     "lodash": "^4.17.15",
     "mkdirp": "^0.5.1",
-    "semver": "^6.3.0",
-    "cz-conventional-changelog": "^3.0.2"
+    "quicktype-core": "^5.0.46",
+    "semver": "^6.3.0"
   },
   "config": {
     "commitizen": {

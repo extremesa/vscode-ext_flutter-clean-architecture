@@ -4,11 +4,10 @@ import * as changeCase from "change-case";
 import { existsSync, writeFile } from "fs";
 import * as path from 'path';
 import { isNameValid, promptForName, promptForJson } from "./common";
-import { runEntityQuicktype } from "../quicktype";
-import ModelGenerator from "./model";
+import { runModelQuicktype } from "../quicktype";
 
 
-export default class EntityGenerator{
+export default class ModelGenerator{
     name: string;
     json: string;
     
@@ -18,7 +17,7 @@ export default class EntityGenerator{
     }
 
     static async newCommaned(uri: Uri) {
-        let name = await promptForName("Entity")!;
+        let name = await promptForName("Model")!;
         let json = await promptForJson();
 
         let targetDirectory = '';
@@ -36,8 +35,8 @@ export default class EntityGenerator{
     
         const pascalName = changeCase.pascalCase(`${name}`.toLowerCase());
         try {
-            await (new EntityGenerator(`${name}`,`${json}`)).generate(targetDirectory);
-            window.showInformationMessage(`Successfully Generated ${pascalName} Entity`);
+            await (new ModelGenerator(`${name}`,`${json}`)).generate(targetDirectory);
+            window.showInformationMessage(`Successfully Generated ${pascalName} Model`);
         } catch (error) {
             window.showErrorMessage(`Error: ${error instanceof Error ? error.message : JSON.stringify(error)}`);
         }
@@ -50,13 +49,8 @@ export default class EntityGenerator{
         }
     
         await Promise.all([
-            (new ModelGenerator(`${this.name} model`, this.json)).generate(this.getModelsPath(targetDirectory)),
             this.createTemplate(targetDirectory),
         ]);
-    }
-
-    getModelsPath(targetDirectory: string): string {
-        return targetDirectory.replace("entity","entities").replace("domain","data");
     }
     
     createTemplate(targetDirectory: string) {
@@ -81,17 +75,12 @@ export default class EntityGenerator{
     
     async getTemplate(): Promise<string> {
         const pascalName = changeCase.pascalCase(this.name.toLowerCase());
-        var result = await runEntityQuicktype(this.json,this.name,"  ",[]);
-        const text = [
-            "import 'package:equatable/equatable.dart';",
-            "",
-            ...result.lines
-        ].join("\n");
-
-        return text.replace(`${pascalName} {`,`${pascalName} extends Equatable {
-  @override
-  List<Object> get props => [];`);
+        const pascalEntityName = changeCase.pascalCase(pascalName.replace("Model","").toLowerCase());
         
+        var result = await runModelQuicktype(this.json,this.name,"  ",[]);
+        const text = result.lines.join("\n");
+
+        return text.replace(`${pascalName} {`,`${pascalName} extends ${pascalEntityName} {`);
         return `import 'package:equatable/equatable.dart';
       
         class ${pascalName} extends Equatable {

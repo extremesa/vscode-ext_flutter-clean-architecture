@@ -22,6 +22,8 @@ import {
 import { analyzeDependencies } from "./utils";
 import EntityGenerator from "./types/entity";
 import UseCaseGenerator from "./types/usecase";
+import RepositoryGenerator from "./types/repository";
+import ModelGenerator from "./types/model";
 
 export function activate (_context: ExtensionContext) {
   analyzeDependencies();
@@ -32,6 +34,18 @@ export function activate (_context: ExtensionContext) {
   
   commands.registerCommand("extension.new-entity", async (uri: Uri) => {
     EntityGenerator.newCommaned(uri);
+  });
+
+  commands.registerCommand("extension.new-repository", async (uri: Uri) => {
+    RepositoryGenerator.newCommaned(uri);
+  });
+
+  commands.registerCommand("extension.new-entity", async (uri: Uri) => {
+    EntityGenerator.newCommaned(uri);
+  });
+
+  commands.registerCommand("extension.new-model", async (uri: Uri) => {
+    ModelGenerator.newCommaned(uri);
   });
 
   commands.registerCommand("extension.new-feature", async (uri: Uri) => {
@@ -231,7 +245,7 @@ export function createBlocEventTemplate (
   useEquatable: boolean
 ) {
   const snakeCaseBlocName = changeCase.snakeCase(blocName.toLowerCase());
-  const targetPath = path.join(targetDirectory, 'bloc', `${snakeCaseBlocName}_event.dart`)
+  const targetPath = path.join(targetDirectory, 'bloc', `${snakeCaseBlocName}_event.dart`);
   if (existsSync(targetPath)) {
     throw Error(`${snakeCaseBlocName}_event.dart already exists`);
   }
@@ -257,7 +271,7 @@ export function createBlocStateTemplate (
   useEquatable: boolean
 ) {
   const snakeCaseBlocName = changeCase.snakeCase(blocName.toLowerCase());
-  const targetPath = path.join(targetDirectory, 'bloc', `${snakeCaseBlocName}_state.dart`)
+  const targetPath = path.join(targetDirectory, 'bloc', `${snakeCaseBlocName}_state.dart`);
   if (existsSync(targetPath)) {
     throw Error(`${snakeCaseBlocName}_state.dart already exists`);
   }
@@ -279,7 +293,7 @@ export function createBlocStateTemplate (
 
 export function createBlocTemplate (blocName: string, targetDirectory: string) {
   const snakeCaseBlocName = changeCase.snakeCase(blocName.toLowerCase());
-  const targetPath = path.join(targetDirectory, 'bloc', `${snakeCaseBlocName}_bloc.dart`)
+  const targetPath = path.join(targetDirectory, 'bloc', `${snakeCaseBlocName}_bloc.dart`);
   if (existsSync(targetPath)) {
     throw Error(`${snakeCaseBlocName}_bloc.dart already exists`);
   }
@@ -295,7 +309,7 @@ export function createBlocTemplate (blocName: string, targetDirectory: string) {
 }
 
 export function createBarrelTemplate (blocName: string, targetDirectory: string) {
-  const targetPath = path.join(targetDirectory, 'bloc', 'bloc.dart')
+  const targetPath = path.join(targetDirectory, 'bloc', 'bloc.dart');
   if (existsSync(targetPath)) {
     return new Promise((resolve, reject) => {
       appendFile(targetPath, getBarrelTemplate(blocName), "utf8", (error: any) => {

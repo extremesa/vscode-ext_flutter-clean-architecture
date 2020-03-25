@@ -9,6 +9,14 @@ export function promptForName (type: string): Thenable<string | undefined> {
   return window.showInputBox(blocNamePromptOptions);
 }
 
+export function promptForJson (): Thenable<string | undefined> {
+  const blocNamePromptOptions: InputBoxOptions = {
+    prompt: `Json`,
+    placeHolder: `Enter your json valid code`
+  };
+  return window.showInputBox(blocNamePromptOptions);
+}
+
 export function isNameValid (featureName: string | undefined): boolean {
   // Check if feature name exists
   if (!featureName) {

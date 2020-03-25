@@ -4,23 +4,18 @@ import * as changeCase from "change-case";
 import { existsSync, writeFile } from "fs";
 import * as path from 'path';
 import { isNameValid, promptForName, promptForJson } from "./common";
-import { runEntityQuicktype } from "../quicktype";
-import ModelGenerator from "./model";
+import EntityGenerator from "./entity";
 
 
-export default class EntityGenerator{
+export default class RepositoryGenerator{
     name: string;
-    json: string;
     
-    constructor(name: string, json: string){
+    constructor(name:string){
         this.name = name;
-        this.json = json;
     }
 
     static async newCommaned(uri: Uri) {
-        let name = await promptForName("Entity")!;
-        let json = await promptForJson();
-
+        let name = await promptForName("Repository");
         let targetDirectory = '';
     
         if (!isNameValid(name)) {
@@ -36,8 +31,9 @@ export default class EntityGenerator{
     
         const pascalName = changeCase.pascalCase(`${name}`.toLowerCase());
         try {
-            await (new EntityGenerator(`${name}`,`${json}`)).generate(targetDirectory);
-            window.showInformationMessage(`Successfully Generated ${pascalName} Entity`);
+
+            await (new RepositoryGenerator(`${name}`).generate(targetDirectory));
+            window.showInformationMessage(`Successfully Generated ${pascalName} UseCase`);
         } catch (error) {
             window.showErrorMessage(`Error: ${error instanceof Error ? error.message : JSON.stringify(error)}`);
         }
@@ -48,17 +44,12 @@ export default class EntityGenerator{
         if (!existsSync(directoryPath)) {
             await createDirectory(directoryPath);
         }
-    
+
         await Promise.all([
-            (new ModelGenerator(`${this.name} model`, this.json)).generate(this.getModelsPath(targetDirectory)),
-            this.createTemplate(targetDirectory),
+            this.createTemplate(targetDirectory)
         ]);
     }
 
-    getModelsPath(targetDirectory: string): string {
-        return targetDirectory.replace("entity","entities").replace("domain","data");
-    }
-    
     createTemplate(targetDirectory: string) {
         const snakeName = changeCase.snakeCase(this.name.toLowerCase());
         const targetPath = path.join(targetDirectory, `${snakeName}.dart`);
@@ -68,7 +59,7 @@ export default class EntityGenerator{
         }
         
         return new Promise(async (resolve, reject) => {
-            writeFile(targetPath, await this.getTemplate(), "utf8", (error: any) => {
+            writeFile(targetPath, this.getTemplate(), "utf8", (error: any) => {
                 if (error) {
                     reject(error);
                     return;
@@ -78,30 +69,11 @@ export default class EntityGenerator{
         });
     }
     
-    
-    async getTemplate(): Promise<string> {
+    getTemplate(): string {
         const pascalName = changeCase.pascalCase(this.name.toLowerCase());
-        var result = await runEntityQuicktype(this.json,this.name,"  ",[]);
-        const text = [
-            "import 'package:equatable/equatable.dart';",
-            "",
-            ...result.lines
-        ].join("\n");
-
-        return text.replace(`${pascalName} {`,`${pascalName} extends Equatable {
-  @override
-  List<Object> get props => [];`);
         
-        return `import 'package:equatable/equatable.dart';
-      
-        class ${pascalName} extends Equatable {
-      
-          ${pascalName}({
-      
-          });
-      
-          @override
-          List<Object> get props => [];
-        }`;
+        return `abstract class ${pascalName}{
+
+}`;
     }
 }

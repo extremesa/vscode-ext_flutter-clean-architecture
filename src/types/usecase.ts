@@ -3,7 +3,9 @@ import { getTargetDirectory, createDirectory } from "../extension";
 import * as changeCase from "change-case";
 import { existsSync, writeFile } from "fs";
 import * as path from 'path';
-import { isNameValid, promptForName } from "./common";
+import { isNameValid, promptForName, promptForJson } from "./common";
+import EntityGenerator from "./entity";
+import RepositoryGenerator from "./repository";
 
 
 export default class UseCaseGenerator{
@@ -51,10 +53,39 @@ export default class UseCaseGenerator{
         if (!existsSync(directoryPath)) {
             await createDirectory(directoryPath);
         }
-    
-        await Promise.all([
-            this.createTemplate(targetDirectory),
-        ]);
+
+        const tasks = [this.createTemplate(targetDirectory)];
+
+        const entityPath = this.getEntitiesPath(targetDirectory);
+        if(!this.isEntityExists(entityPath)){
+            let json = await promptForJson();
+            tasks.push((new EntityGenerator(this.entityName, `${json}`)).generate(entityPath));
+        }
+
+        const repositoryPath = this.getRepositoriesPath(targetDirectory);
+        if(!this.isRepositoryExists(entityPath)){
+            tasks.push((new RepositoryGenerator(this.repositoryName)).generate(repositoryPath));
+        }
+
+        await Promise.all(tasks);
+    }
+
+    isEntityExists(targetDirectory: string): boolean {
+        const snakeName = changeCase.snakeCase(this.entityName.toLowerCase());
+        return existsSync(path.join(this.getEntitiesPath(targetDirectory), `${snakeName}.dart`));
+    }
+
+    getEntitiesPath(targetDirectory: string): string {
+        return targetDirectory.replace("usecases","entities");
+    }
+
+    isRepositoryExists(targetDirectory: string): boolean {
+        const snakeName = changeCase.snakeCase(this.entityName.toLowerCase());
+        return existsSync(path.join(this.getRepositoriesPath(targetDirectory), `${snakeName}.dart`));
+    }
+
+    getRepositoriesPath(targetDirectory: string): string {
+        return targetDirectory.replace("usecases","repositories");
     }
     
     createTemplate(targetDirectory: string) {
@@ -88,21 +119,21 @@ export default class UseCaseGenerator{
         const snakeEntityName = changeCase.snakeCase(this.entityName.toLowerCase());
 
         return `import 'dart:async';
-            import 'package:dartz/dartz.dart';
-            import 'package:famcare/core/errors/failures.dart';
-            import '../entities/${snakeEntityName}.dart';
-            import '../repositories/${snakeRepositoryName}.dart';
+import 'package:dartz/dartz.dart';
+import 'package:famcare/core/errors/failures.dart';
+import '../entities/${snakeEntityName}.dart';
+import '../repositories/${snakeRepositoryName}.dart';
 
-            class ${pascalUseCaseName}{
-            final ${pascalRepositoryName} ${camelRepositoryName};
+class ${pascalUseCaseName}{
+    final ${pascalRepositoryName} ${camelRepositoryName};
 
-            ${pascalUseCaseName}({
-                this.${camelRepositoryName}
-            });
-            
-            Future<Either<Failure, ${pascalEntityName}>> execute() async {
-                // todo: TBD
-            }
-        }`;
+    ${pascalUseCaseName}({
+        this.${camelRepositoryName}
+    });
+
+    Future<Either<Failure, ${pascalEntityName}>> execute() async {
+        // todo: TBD
+    }
+}`;
     }
 }
