@@ -41,6 +41,12 @@
         "title": "New Usecase",
         "category": "Flutter Clean Architecture",
         "icon": "assets/logo.png"
+      },
+      {
+        "command": "extension.new-entity",
+        "title": "New Entity",
+        "category": "Flutter Clean Architecture",
+        "icon": "assets/logo.png"
       }
     ],
     "menus": {
@@ -52,6 +58,11 @@
         },
         {
           "command": "extension.new-usecase",
+          "group": "cleanArchitectureGroup@1",
+          "when": "explorerResourceIsFolder"
+        },
+        {
+          "command": "extension.new-entity",
           "group": "cleanArchitectureGroup@1",
           "when": "explorerResourceIsFolder"
         }
